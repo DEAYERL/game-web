@@ -36,18 +36,16 @@ function crearAsteroide() {
 asteroids = Array.from({ length: 8 }, crearAsteroide);
 
 function update() {
-    function update() {
     asteroids.forEach(a => {
         a.x += a.vx;
         a.y += a.vy;
         a.rotacion += a.velRotacion;
-        if (a.x < -a.radio)                 a.x = canvas.width  + a.radio;
-        if (a.x >  canvas.width  + a.radio) a.x = -a.radio;
-        if (a.y < -a.radio)                 a.y = canvas.height + a.radio;
-        if (a.y >  canvas.height + a.radio) a.y = -a.radio;
-    });
-}
 
+        if (a.x < -a.radio) a.x = canvas.width + a.radio;
+        if (a.x > canvas.width + a.radio) a.x = -a.radio;
+        if (a.y < -a.radio) a.y = canvas.height + a.radio;
+        if (a.y > canvas.height + a.radio) a.y = -a.radio;
+    });
 }
 
 function draw() {
