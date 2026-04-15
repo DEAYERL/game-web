@@ -22,6 +22,10 @@ document.addEventListener("keydown", (e) => {
     if (e.code === "Enter" && gameState === "menu") {
         gameState = "playing";
     }
+
+    if (e.code === "Space" && gameState === "playing") {
+        disparar();
+    }
 });
 
 document.addEventListener("keyup", (e) => {
@@ -97,6 +101,17 @@ function update() {
         if (a.y < -a.radio) a.y = canvas.height + a.radio;
         if (a.y > canvas.height + a.radio) a.y = -a.radio;
     });
+    bullets.forEach((b, i) => {
+        b.x += Math.cos(b.angle - Math.PI / 2) * b.speed;
+        b.y += Math.sin(b.angle - Math.PI / 2) * b.speed;
+
+        if (
+            b.x < 0 || b.x > canvas.width ||
+            b.y < 0 || b.y > canvas.height
+        ) {
+            bullets.splice(i, 1);
+        }
+    });
 }
 
 function draw() {
@@ -131,6 +146,22 @@ function draw() {
         ctx.closePath();
         ctx.stroke();
         ctx.restore();
+    });
+
+    bullets.forEach(b => {
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
+    ctx.fill();
+    });
+}
+
+function disparar() {
+    bullets.push({
+        x: ship.x,
+        y: ship.y,
+        angle: ship.angle,
+        speed: 5
     });
 }
 
