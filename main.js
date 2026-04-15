@@ -8,10 +8,25 @@ let gameState = "menu";
 let ship = {
     x: canvas.width / 2,
     y: canvas.height / 2,
-    angle: 0
+    angle: 0,
+    vx: 0,
+    vy: 0
 };
 let bullets = [];
 let asteroids = [];
+let keys = {};
+
+document.addEventListener("keydown", (e) => {
+    keys[e.code] = true;
+
+    if (e.code === "Enter" && gameState === "menu") {
+        gameState = "playing";
+    }
+});
+
+document.addEventListener("keyup", (e) => {
+    keys[e.code] = false;
+});
 
 function crearAsteroide() {
     const radio = 20 + Math.random() * 30;
@@ -47,10 +62,36 @@ function drawMenu() {
 }
 
 function update() {
+    if (gameState !== "playing") return;
+
+    if (keys["ArrowLeft"]) {
+        ship.angle -= 0.05;
+    }
+    if (keys["ArrowRight"]) {
+        ship.angle += 0.05;
+    }
+
+    if (keys["ArrowUp"]) {
+        ship.vx += Math.cos(ship.angle - Math.PI / 2) * 0.1;
+        ship.vy += Math.sin(ship.angle - Math.PI / 2) * 0.1;
+    }
+
+    ship.x += ship.vx;
+    ship.y += ship.vy;
+
+    ship.vx *= 0.99;
+    ship.vy *= 0.99;
+
+    if (ship.x < 0) ship.x = canvas.width;
+    if (ship.x > canvas.width) ship.x = 0;
+    if (ship.y < 0) ship.y = canvas.height;
+    if (ship.y > canvas.height) ship.y = 0;
+
     asteroids.forEach(a => {
         a.x += a.vx;
         a.y += a.vy;
         a.rotacion += a.velRotacion;
+
         if (a.x < -a.radio) a.x = canvas.width + a.radio;
         if (a.x > canvas.width + a.radio) a.x = -a.radio;
         if (a.y < -a.radio) a.y = canvas.height + a.radio;
@@ -61,13 +102,19 @@ function update() {
 function draw() {
     ctx.fillStyle = "black";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(ship.x, ship.y);
+    ctx.rotate(ship.angle);
+
     ctx.strokeStyle = "white";
     ctx.beginPath();
-    ctx.moveTo(ship.x, ship.y - 20);
-    ctx.lineTo(ship.x - 15, ship.y + 20);
-    ctx.lineTo(ship.x + 15, ship.y + 20);
+    ctx.moveTo(0, -20);
+    ctx.lineTo(-15, 20);
+    ctx.lineTo(15, 20);
     ctx.closePath();
     ctx.stroke();
+
+    ctx.restore();
 
     asteroids.forEach(a => {
         ctx.save();
