@@ -15,6 +15,7 @@ let ship = {
 let bullets = []
 let asteroids = []
 let keys = {}
+let score = 0
 
 document.addEventListener('keydown', (e) => {
   keys[e.code] = true
@@ -115,6 +116,10 @@ function update() {
 function draw() {
   ctx.fillStyle = 'black'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillStyle = 'white'
+  ctx.font = '20px monospace'
+  ctx.textAlign = 'left'
+  ctx.fillText('Puntaje: ' + score, 20, 40)
   ctx.save()
   ctx.translate(ship.x, ship.y)
   ctx.rotate(ship.angle)
@@ -163,6 +168,7 @@ function checkColisiones() {
       if (distancia < a.radio) {
         bullets.splice(i, 1) // desaparece la bala
         asteroids.splice(j, 1) // desaparece el asteroide
+        score += 10
         break
       }
     }
