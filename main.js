@@ -173,6 +173,18 @@ function checkColisiones() {
       }
     }
   }
+  // Nave vs Asteroide
+  for (let j = 0; j < asteroids.length; j++) {
+    const a = asteroids[j]
+    const dx = ship.x - a.x
+    const dy = ship.y - a.y
+    const distancia = Math.sqrt(dx * dx + dy * dy)
+
+    if (distancia < a.radio + 15) {
+      gameState = 'gameover'
+      break
+    }
+  }
 }
 
 function disparar() {
