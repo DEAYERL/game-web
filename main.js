@@ -27,6 +27,9 @@ document.addEventListener('keydown', (e) => {
   if (e.code === 'Space' && gameState === 'playing') {
     disparar()
   }
+  if (e.code === 'Enter' && gameState === 'gameover') {
+    reiniciarJuego()
+  }
 })
 
 document.addEventListener('keyup', (e) => {
@@ -208,8 +211,38 @@ function gameLoop() {
   } else if (gameState === 'playing') {
     update()
     draw()
+  } else if (gameState === 'gameover') {
+    drawGameOver()
   }
   requestAnimationFrame(gameLoop)
 }
+function drawGameOver() {
+  ctx.fillStyle = 'black'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
 
+  ctx.fillStyle = 'red'
+  ctx.font = 'bold 72px monospace'
+  ctx.textAlign = 'center'
+  ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 60)
+
+  ctx.fillStyle = 'white'
+  ctx.font = '32px monospace'
+  ctx.fillText('Puntaje: ' + score, canvas.width / 2, canvas.height / 2 + 10)
+
+  ctx.fillStyle = '#aaa'
+  ctx.font = '22px monospace'
+  ctx.fillText('Presiona ENTER para reiniciar', canvas.width / 2, canvas.height / 2 + 60)
+}
+
+function reiniciarJuego() {
+  ship.x = canvas.width / 2
+  ship.y = canvas.height / 2
+  ship.angle = 0
+  ship.vx = 0
+  ship.vy = 0
+  bullets = []
+  asteroids = Array.from({ length: 8 }, crearAsteroide)
+  score = 0
+  gameState = 'playing'
+}
 gameLoop()
