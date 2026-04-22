@@ -16,6 +16,9 @@ let bullets = []
 let asteroids = []
 let keys = {}
 let score = 0
+let lastShotTime = 0
+let shotCooldown = 300 
+let menuTime = 0
 
 document.addEventListener('keydown', (e) => {
     keys[e.code] = true
@@ -58,15 +61,29 @@ function crearAsteroide() {
 asteroids = Array.from({ length: 8 }, crearAsteroide)
 
 function drawMenu() {
+    menuTime += 0.05
+
     ctx.fillStyle = 'black'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    const scale = 1 + Math.sin(menuTime) * 0.05
+
+    ctx.save()
+    ctx.translate(canvas.width / 2, canvas.height / 2 - 40)
+    ctx.scale(scale, scale)
+
     ctx.fillStyle = 'white'
     ctx.font = 'bold 64px monospace'
     ctx.textAlign = 'center'
-    ctx.fillText('ASTEROIDS', canvas.width / 2, canvas.height / 2 - 40)
-    ctx.font = '24px monospace'
-    ctx.fillStyle = '#aaa'
-    ctx.fillText('Presiona ENTER para jugar', canvas.width / 2, canvas.height / 2 + 30)
+    ctx.fillText('ASTEROIDS', 0, 0)
+
+    ctx.restore()
+    if (Math.floor(menuTime * 2) % 2 === 0) {
+        ctx.fillStyle = '#aaa'
+        ctx.font = '24px monospace'
+        ctx.textAlign = 'center'
+        ctx.fillText('Presiona ENTER para jugar', canvas.width / 2, canvas.height / 2 + 40)
+    }
 }
 
 function update() {
@@ -191,19 +208,19 @@ function checkColisiones() {
 }
 
 function disparar() {
+    const ahora = Date.now()
+
+    if (ahora - lastShotTime < shotCooldown) return
+
+    lastShotTime = ahora
+
     bullets.push({
-    x: ship.x,
-    y: ship.y,
-    angle: ship.angle,
-    speed: 5
+        x: ship.x,
+        y: ship.y,
+        angle: ship.angle,
+        speed: 5
     })
 }
-
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && gameState === 'menu') {
-    gameState = 'playing'
-    }
-})
 
 function gameLoop() {
     if (gameState === 'menu') {
