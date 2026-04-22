@@ -19,6 +19,9 @@ let score = 0
 let lastShotTime = 0
 let shotCooldown = 300 
 let menuTime = 0
+let particles = []
+let spawnTimer = 0
+let spawnInterval = 120
 
 document.addEventListener('keydown', (e) => {
     keys[e.code] = true
@@ -40,25 +43,64 @@ document.addEventListener('keyup', (e) => {
 })
 
 function crearAsteroide() {
-  const radio = 20 + Math.random() * 30
-  const lados = 5 + Math.floor(Math.random() * 4)
+    const radio = 20 + Math.random() * 30
+    const lados = 5 + Math.floor(Math.random() * 4)
+    const lado = Math.floor(Math.random() * 4)
+
+    let x, y
+
+    if (lado === 0) { // arriba
+        x = Math.random() * canvas.width
+        y = -50
+    } else if (lado === 1) { // derecha
+        x = canvas.width + 50
+        y = Math.random() * canvas.height
+    } else if (lado === 2) { // abajo
+        x = Math.random() * canvas.width
+        y = canvas.height + 50
+    } else { // izquierda
+        x = -50
+        y = Math.random() * canvas.height
+    }
+
+    const dx = canvas.width / 2 - x
+    const dy = canvas.height / 2 - y
+    const angulo = Math.atan2(dy, dx)
+
+    const velocidad = 1 + Math.random() * 1.5
+
     return {
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    radio: radio,
-    vx: (Math.random() - 0.5) * 2,
-    vy: (Math.random() - 0.5) * 2,
-    rotacion: 0,
-    velRotacion: (Math.random() - 0.5) * 0.03,
-    puntos: Array.from({ length: lados }, (_, i) => {
-      const angulo = (i / lados) * Math.PI * 2 + (Math.random() - 0.5) * 0.8
-      const r = 0.4 + Math.random() * 0.6
-      return { x: Math.cos(angulo) * r, y: Math.sin(angulo) * r }
-    })
+        x: x,
+        y: y,
+        radio: radio,
+        vx: Math.cos(angulo) * velocidad,
+        vy: Math.sin(angulo) * velocidad,
+        rotacion: 0,
+        velRotacion: (Math.random() - 0.5) * 0.03,
+        puntos: Array.from({ length: lados }, (_, i) => {
+            const ang = (i / lados) * Math.PI * 2 + (Math.random() - 0.5) * 0.8
+            const r = 0.4 + Math.random() * 0.6
+            return {
+                x: Math.cos(ang) * r,
+                y: Math.sin(ang) * r
+            }
+        })
     }
 }
 
 asteroids = Array.from({ length: 8 }, crearAsteroide)
+
+function crearExplosion(x, y) {
+    for (let i = 0; i < 15; i++) {
+        particles.push({
+            x: x,
+            y: y,
+            vx: (Math.random() - 0.5) * 4,
+            vy: (Math.random() - 0.5) * 4,
+            life: 30
+        })
+    }
+}
 
 function drawMenu() {
     menuTime += 0.05
@@ -104,8 +146,8 @@ function update() {
     ship.x += ship.vx
     ship.y += ship.vy
 
-  ship.vx *= 0.99
-  ship.vy *= 0.99
+    ship.vx *= 0.99
+    ship.vy *= 0.99
 
     if (ship.x < 0) ship.x = canvas.width
     if (ship.x > canvas.width) ship.x = 0
@@ -131,6 +173,23 @@ function update() {
     }
     })
     checkColisiones()
+
+    particles.forEach((p, i) => {
+    p.x += p.vx
+    p.y += p.vy
+    p.life--
+
+    if (p.life <= 0) {
+        particles.splice(i, 1)
+    }
+    })
+
+    spawnTimer++
+
+    if (spawnTimer > spawnInterval) {
+    asteroids.push(crearAsteroide())
+    spawnTimer = 0
+    }
 }
 
 function draw() {
@@ -175,7 +234,13 @@ function draw() {
     ctx.arc(b.x, b.y, 3, 0, Math.PI * 2)
     ctx.fill()
     })
+
+    particles.forEach(p => {
+    ctx.fillStyle = "orange"
+    ctx.fillRect(p.x, p.y, 3, 3)
+    })
 }
+
 function checkColisiones() {
     for (let i = bullets.length - 1; i >= 0; i--) {
     for (let j = asteroids.length - 1; j >= 0; j--) {
@@ -186,8 +251,9 @@ function checkColisiones() {
       const distancia = Math.sqrt(dx * dx + dy * dy)
 
         if (distancia < a.radio) {
-        bullets.splice(i, 1) // desaparece la bala
-        asteroids.splice(j, 1) // desaparece el asteroide
+        crearExplosion(a.x, a.y)
+        bullets.splice(i, 1)
+        asteroids.splice(j, 1)
         score += 10
         break
         }
