@@ -22,6 +22,7 @@ let menuTime = 0
 let particles = []
 let spawnTimer = 0
 let spawnInterval = 120
+let stars = []
 
 document.addEventListener('keydown', (e) => {
     keys[e.code] = true
@@ -88,6 +89,7 @@ function crearAsteroide() {
     }
 }
 
+crearEstrellas()
 asteroids = Array.from({ length: 8 }, crearAsteroide)
 
 function crearExplosion(x, y) {
@@ -125,6 +127,16 @@ function drawMenu() {
         ctx.font = '24px monospace'
         ctx.textAlign = 'center'
         ctx.fillText('Presiona ENTER para jugar', canvas.width / 2, canvas.height / 2 + 40)
+    }
+}
+
+function crearEstrellas() {
+    for (let i = 0; i < 100; i++) {
+        stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: 1 + Math.random() * 2 
+        })
     }
 }
 
@@ -190,15 +202,31 @@ function update() {
     asteroids.push(crearAsteroide())
     spawnTimer = 0
     }
+
+    stars.forEach(s => {
+    s.y += s.size * 0.3
+
+    if (s.y > canvas.height) {
+        s.y = 0
+        s.x = Math.random() * canvas.width
+    }
+    })
 }
 
 function draw() {
     ctx.fillStyle = 'black'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    stars.forEach(s => {
+        ctx.fillStyle = "rgba(255,255,255,0.8)"
+        ctx.fillRect(s.x, s.y, s.size, s.size)
+    })
+
     ctx.fillStyle = 'white'
     ctx.font = '20px monospace'
     ctx.textAlign = 'left'
     ctx.fillText('Puntaje: ' + score, 20, 40)
+
     ctx.save()
     ctx.translate(ship.x, ship.y)
     ctx.rotate(ship.angle)
@@ -213,31 +241,34 @@ function draw() {
 
     ctx.restore()
 
-    asteroids.forEach((a) => {
-    ctx.save()
-    ctx.translate(a.x, a.y)
-    ctx.rotate(a.rotacion)
-    ctx.strokeStyle = '#fff'
-    ctx.lineWidth = 2
-    ctx.beginPath()
-    a.puntos.forEach((p, i) => {
-      i === 0 ? ctx.moveTo(p.x * a.radio, p.y * a.radio) : ctx.lineTo(p.x * a.radio, p.y * a.radio)
-    })
-    ctx.closePath()
-    ctx.stroke()
-    ctx.restore()
-    })
-
-    bullets.forEach((b) => {
-    ctx.fillStyle = 'white'
-    ctx.beginPath()
-    ctx.arc(b.x, b.y, 3, 0, Math.PI * 2)
-    ctx.fill()
+    asteroids.forEach(a => {
+        ctx.save()
+        ctx.translate(a.x, a.y)
+        ctx.rotate(a.rotacion)
+        ctx.strokeStyle = '#fff'
+        ctx.beginPath()
+        a.puntos.forEach((p, i) => {
+            i === 0
+                ? ctx.moveTo(p.x * a.radio, p.y * a.radio)
+                : ctx.lineTo(p.x * a.radio, p.y * a.radio)
+        })
+        ctx.closePath()
+        ctx.stroke()
+        ctx.restore()
     })
 
     particles.forEach(p => {
-    ctx.fillStyle = "orange"
-    ctx.fillRect(p.x, p.y, 3, 3)
+    ctx.fillStyle = `rgba(255, ${100 + Math.random() * 155}, 0, ${p.life / 30})`
+    ctx.beginPath()
+    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2)
+    ctx.fill()
+})
+
+    bullets.forEach(b => {
+        ctx.fillStyle = 'white'
+        ctx.beginPath()
+        ctx.arc(b.x, b.y, 3, 0, Math.PI * 2)
+        ctx.fill()
     })
 }
 
