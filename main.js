@@ -67,9 +67,8 @@ function crearAsteroide() {
     const dx = canvas.width / 2 - x
     const dy = canvas.height / 2 - y
     const angulo = Math.atan2(dy, dx)
-
     const velocidad = 1 + Math.random() * 1.5
-
+    
     return {
         x: x,
         y: y,
@@ -89,8 +88,15 @@ function crearAsteroide() {
     }
 }
 
-crearEstrellas()
-asteroids = Array.from({ length: 8 }, crearAsteroide)
+function crearEstrellas() {
+    for (let i = 0; i < 100; i++) {
+        stars.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            size: 1 + Math.random() * 2 
+        })
+    }
+}
 
 function crearExplosion(x, y) {
     for (let i = 0; i < 15; i++) {
@@ -102,6 +108,65 @@ function crearExplosion(x, y) {
             life: 30
         })
     }
+}
+
+function draw() {
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    stars.forEach(s => {
+        ctx.fillStyle = "rgba(255,255,255,0.8)"
+        ctx.fillRect(s.x, s.y, s.size, s.size)
+    })
+
+    ctx.fillStyle = 'white'
+    ctx.font = '20px monospace'
+    ctx.textAlign = 'left'
+    ctx.fillText('Puntaje: ' + score, 20, 40)
+
+    ctx.save()
+    ctx.translate(ship.x, ship.y)
+    ctx.rotate(ship.angle)
+
+    ctx.strokeStyle = 'white'
+    ctx.beginPath()
+    ctx.moveTo(0, -20)
+    ctx.lineTo(-15, 20)
+    ctx.lineTo(15, 20)
+    ctx.closePath()
+    ctx.stroke()
+
+    ctx.restore()
+
+    asteroids.forEach(a => {
+        ctx.save()
+        ctx.translate(a.x, a.y)
+        ctx.rotate(a.rotacion)
+        ctx.strokeStyle = '#fff'
+        ctx.beginPath()
+        a.puntos.forEach((p, i) => {
+            i === 0
+                ? ctx.moveTo(p.x * a.radio, p.y * a.radio)
+                : ctx.lineTo(p.x * a.radio, p.y * a.radio)
+        })
+        ctx.closePath()
+        ctx.stroke()
+        ctx.restore()
+    })
+
+    particles.forEach(p => {
+    ctx.fillStyle = `rgba(255, ${100 + Math.random() * 155}, 0, ${p.life / 30})`
+    ctx.beginPath()
+    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2)
+    ctx.fill()
+})
+
+    bullets.forEach(b => {
+        ctx.fillStyle = 'white'
+        ctx.beginPath()
+        ctx.arc(b.x, b.y, 3, 0, Math.PI * 2)
+        ctx.fill()
+    })
 }
 
 function drawMenu() {
@@ -130,14 +195,22 @@ function drawMenu() {
     }
 }
 
-function crearEstrellas() {
-    for (let i = 0; i < 100; i++) {
-        stars.push({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            size: 1 + Math.random() * 2 
-        })
-    }
+function drawGameOver() {
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    ctx.fillStyle = 'red'
+    ctx.font = 'bold 72px monospace'
+    ctx.textAlign = 'center'
+    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 60)
+
+    ctx.fillStyle = 'white'
+    ctx.font = '32px monospace'
+    ctx.fillText('Puntaje: ' + score, canvas.width / 2, canvas.height / 2 + 10)
+
+    ctx.fillStyle = '#aaa'
+    ctx.font = '22px monospace'
+    ctx.fillText('Presiona ENTER para reiniciar', canvas.width / 2, canvas.height / 2 + 60)
 }
 
 function update() {
@@ -213,65 +286,6 @@ function update() {
     })
 }
 
-function draw() {
-    ctx.fillStyle = 'black'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-    stars.forEach(s => {
-        ctx.fillStyle = "rgba(255,255,255,0.8)"
-        ctx.fillRect(s.x, s.y, s.size, s.size)
-    })
-
-    ctx.fillStyle = 'white'
-    ctx.font = '20px monospace'
-    ctx.textAlign = 'left'
-    ctx.fillText('Puntaje: ' + score, 20, 40)
-
-    ctx.save()
-    ctx.translate(ship.x, ship.y)
-    ctx.rotate(ship.angle)
-
-    ctx.strokeStyle = 'white'
-    ctx.beginPath()
-    ctx.moveTo(0, -20)
-    ctx.lineTo(-15, 20)
-    ctx.lineTo(15, 20)
-    ctx.closePath()
-    ctx.stroke()
-
-    ctx.restore()
-
-    asteroids.forEach(a => {
-        ctx.save()
-        ctx.translate(a.x, a.y)
-        ctx.rotate(a.rotacion)
-        ctx.strokeStyle = '#fff'
-        ctx.beginPath()
-        a.puntos.forEach((p, i) => {
-            i === 0
-                ? ctx.moveTo(p.x * a.radio, p.y * a.radio)
-                : ctx.lineTo(p.x * a.radio, p.y * a.radio)
-        })
-        ctx.closePath()
-        ctx.stroke()
-        ctx.restore()
-    })
-
-    particles.forEach(p => {
-    ctx.fillStyle = `rgba(255, ${100 + Math.random() * 155}, 0, ${p.life / 30})`
-    ctx.beginPath()
-    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2)
-    ctx.fill()
-})
-
-    bullets.forEach(b => {
-        ctx.fillStyle = 'white'
-        ctx.beginPath()
-        ctx.arc(b.x, b.y, 3, 0, Math.PI * 2)
-        ctx.fill()
-    })
-}
-
 function checkColisiones() {
     for (let i = bullets.length - 1; i >= 0; i--) {
     for (let j = asteroids.length - 1; j >= 0; j--) {
@@ -319,35 +333,6 @@ function disparar() {
     })
 }
 
-function gameLoop() {
-    if (gameState === 'menu') {
-    drawMenu()
-    } else if (gameState === 'playing') {
-    update()
-    draw()
-    } else if (gameState === 'gameover') {
-    drawGameOver()
-    }
-    requestAnimationFrame(gameLoop)
-}
-function drawGameOver() {
-    ctx.fillStyle = 'black'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-    ctx.fillStyle = 'red'
-    ctx.font = 'bold 72px monospace'
-    ctx.textAlign = 'center'
-    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 60)
-
-    ctx.fillStyle = 'white'
-    ctx.font = '32px monospace'
-    ctx.fillText('Puntaje: ' + score, canvas.width / 2, canvas.height / 2 + 10)
-
-    ctx.fillStyle = '#aaa'
-    ctx.font = '22px monospace'
-    ctx.fillText('Presiona ENTER para reiniciar', canvas.width / 2, canvas.height / 2 + 60)
-}
-
 function reiniciarJuego() {
     ship.x = canvas.width / 2
     ship.y = canvas.height / 2
@@ -359,4 +344,19 @@ function reiniciarJuego() {
     score = 0
     gameState = 'playing'
 }
+
+function gameLoop() {
+    if (gameState === 'menu') {
+    drawMenu()
+    } else if (gameState === 'playing') {
+    update()
+    draw()
+    } else if (gameState === 'gameover') {
+    drawGameOver()
+    }
+    requestAnimationFrame(gameLoop)
+}
+
+crearEstrellas()
+asteroids = Array.from({ length: 8 }, crearAsteroide)
 gameLoop()
